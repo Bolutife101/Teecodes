@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fraction Arcade</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #F3F1FA;
+    --surface: #FFFFFF;
+    --surface-2: #ECE8F7;
+    --text: #1B1B3A;
+    --text-soft: #4B4870;
+    --coral: #FF6B4A;
+    --gold: #E8A400;
+    --teal: #14958C;
+    --rose: #E23B58;
+    --line: rgba(27,27,58,0.14);
+    --shadow: 0 10px 30px rgba(27,27,58,0.12);
+    --radius-lg: 22px;
+    --radius-sm: 10px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #14142B;
+      --surface: #1F1F42;
+      --surface-2: #262650;
+      --text: #EDEAF6;
+      --text-soft: #B4AFD6;
+      --coral: #FF7A5C;
+      --gold: #FFD23F;
+      --teal: #4ECDC4;
+      --rose: #FF6688;
+      --line: rgba(237,234,246,0.12);
+      --shadow: 0 10px 34px rgba(0,0,0,0.45);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ink: #14142B;
+    --surface: #1F1F42;
+    --surface-2: #262650;
+    --text: #EDEAF6;
+    --text-soft: #B4AFD6;
+    --coral: #FF7A5C;
+    --gold: #FFD23F;
+    --teal: #4ECDC4;
+    --rose: #FF6688;
+    --line: rgba(237,234,246,0.12);
+    --shadow: 0 10px 34px rgba(0,0,0,0.45);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--ink);
+    color: var(--text);
+    font-family: 'Work Sans', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  body { width: 100%; }
+
+  h1, h2, h3, .display {
+    font-family: 'Fredoka', system-ui, sans-serif;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  .wrap {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  a { color: inherit; }
+
+  button {
+    font-family: inherit;
+    cursor: pointer;
+  }
+
+  /* ---------- top bar ---------- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 24px;
+    max-width: 980px;
+    margin: 0 auto;
+  }
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+  .brand .slash { color: var(--coral); font-size: 1.3rem; }
+
+  .stat-strip {
+    display: flex;
+    gap: 18px;
+    font-size: 0.82rem;
+    color: var(--text-soft);
+  }
+  .stat-strip b {
+    color: var(--text);
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.95rem;
+    display: block;
+  }
+  .stat-strip span { display: block; }
+
+  /* ---------- hero ---------- */
+  .hero {
+    padding: 40px 24px 70px;
+    text-align: center;
+  }
+  .hero h1 {
+    font-size: clamp(2.1rem, 5.4vw, 3.4rem);
+    line-height: 1.08;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+  .hero p.lede {
+    max-width: 480px;
+    margin: 18px auto 0;
+    color: var(--text-soft);
+    font-size: 1.05rem;
+    line-height: 1.55;
+  }
+
+  .slice-demo {
+    max-width: 560px;
+    margin: 46px auto 0;
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    padding: 30px 28px 26px;
+    border: 1px solid var(--line);
+  }
+  .slice-demo .reading {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 2.6rem;
+    margin-bottom: 4px;
+  }
+  .slice-demo .reading .num { color: var(--coral); }
+  .slice-demo .reading .bar { color: var(--text-soft); padding: 0 6px; }
+  .slice-demo .reading .den { color: var(--teal); }
+  .slice-demo .caption {
+    color: var(--text-soft);
+    font-size: 0.9rem;
+    margin-bottom: 20px;
+  }
+
+  .demo-bar-track {
+    position: relative;
+    height: 64px;
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    touch-action: none;
+  }
+  .demo-bar-fill {
+    position: absolute;
+    inset: 0;
+    width: 37.5%;
+    background: linear-gradient(135deg, var(--coral), var(--gold));
+  }
+  .demo-bar-ticks { position: absolute; inset: 0; display: flex; }
+  .demo-bar-ticks i {
+    flex: 1;
+    border-right: 1px solid rgba(0,0,0,0.08);
+  }
+  .demo-bar-ticks i:last-child { border-right: none; }
+  .demo-handle {
+    position: absolute;
+    top: -6px; bottom: -6px;
+    width: 14px;
+    margin-left: -7px;
+    left: 37.5%;
+    background: var(--text);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    cursor: grab;
+  }
+  .demo-hint {
+    margin-top: 14px;
+    font-size: 0.82rem;
+    color: var(--text-soft);
+  }
+
+  .cta-row { margin-top: 30px; }
+  .btn {
+    display: inline-block;
+    border: none;
+    border-radius: 999px;
+    padding: 14px 30px;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: 'Fredoka', sans-serif;
+    background: var(--coral);
+    color: #16121A;
+    transition: transform 0.15s ease;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn:active { transform: translateY(0); }
+  .btn:focus-visible, button:focus-visible, .tab:focus-visible, .card:focus-visible {
+    outline: 3px solid var(--teal);
+    outline-offset: 2px;
+  }
+
+  /* ---------- game section ---------- */
+  .arcade {
+    padding: 10px 24px 90px;
+  }
+  .arcade-head {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  .arcade-head h2 { font-size: clamp(1.5rem, 3.4vw, 2rem); }
+  .arcade-head p { color: var(--text-soft); margin-top: 8px; }
+
+  .panel {
+    max-width: 720px;
+    margin: 0 auto;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    background: var(--surface-2);
+    padding: 6px;
+    gap: 6px;
+  }
+  .tab {
+    border: none;
+    background: transparent;
+    padding: 12px 8px;
+    border-radius: 10px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.92rem;
+    color: var(--text-soft);
+  }
+  .tab[aria-selected="true"] {
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  }
+
+  .panel-body { padding: 28px 26px 30px; }
+
+  .row-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .diff-select {
+    display: flex;
+    gap: 6px;
+    background: var(--surface-2);
+    padding: 4px;
+    border-radius: 999px;
+  }
+  .diff-btn {
+    border: none;
+    background: transparent;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    color: var(--text-soft);
+    font-family: 'Fredoka', sans-serif;
+  }
+  .diff-btn[aria-pressed="true"] {
+    background: var(--teal);
+    color: #06231F;
+  }
+
+  .score-pill {
+    font-size: 0.82rem;
+    color: var(--text-soft);
+    display: flex;
+    gap: 14px;
+  }
+  .score-pill b { color: var(--text); }
+
+  .game-stage { min-height: 260px; }
+
+  /* Duel mode */
+  .duel-fractions {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 16px;
+    align-items: center;
+  }
+  .duel-vs {
+    font-family: 'Fredoka', sans-serif;
+    color: var(--text-soft);
+    font-size: 0.9rem;
+  }
+  .frac-card {
+    border: 2px solid var(--line);
+    border-radius: 16px;
+    padding: 20px 14px;
+    text-align: center;
+    background: var(--surface-2);
+    transition: border-color 0.15s ease, transform 0.1s ease;
+  }
+  .frac-card:hover { transform: translateY(-2px); }
+  .frac-card.correct { border-color: var(--teal); }
+  .frac-card.wrong { border-color: var(--rose); }
+  .frac-card .label {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.5rem;
+    margin-bottom: 12px;
+  }
+  .mini-bar {
+    height: 26px;
+    border-radius: 6px;
+    overflow: hidden;
+    display: flex;
+    border: 1px solid var(--line);
+  }
+  .mini-bar i {
+    flex: 1;
+    border-right: 1px solid var(--line);
+  }
+  .mini-bar i:last-child { border-right: none; }
+  .mini-bar i.on { background: linear-gradient(135deg, var(--coral), var(--gold)); }
+  .mini-bar i.on-alt { background: linear-gradient(135deg, var(--teal), #7BE0D6); }
+
+  /* Build mode */
+  .build-target {
+    text-align: center;
+    margin-bottom: 22px;
+  }
+  .build-target .target-frac {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 2.2rem;
+  }
+  .build-target .target-frac .num { color: var(--coral); }
+  .build-target .target-frac .den { color: var(--teal); }
+  .build-target p { color: var(--text-soft); font-size: 0.88rem; margin-top: 6px; }
+
+  .build-bar {
+    display: flex;
+    height: 72px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: var(--surface-2);
+  }
+  .build-seg {
+    flex: 1;
+    border: none;
+    border-right: 1px solid var(--line);
+    background: transparent;
+    transition: background 0.12s ease;
+  }
+  .build-seg:last-child { border-right: none; }
+  .build-seg.shaded {
+    background: linear-gradient(135deg, var(--coral), var(--gold));
+  }
+
+  .build-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 22px;
+  }
+  .btn-secondary {
+    background: var(--surface-2);
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 12px 22px;
+    font-family: 'Fredoka', sans-serif;
+    font-size: 0.92rem;
+  }
+
+  .feedback {
+    text-align: center;
+    margin-top: 16px;
+    min-height: 22px;
+    font-size: 0.9rem;
+    font-family: 'Fredoka', sans-serif;
+  }
+  .feedback.good { color: var(--teal); }
+  .feedback.bad { color: var(--rose); }
+
+  /* Match mode */
+  .match-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+  .match-card {
+    aspect-ratio: 1 / 1;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: var(--surface-2);
+    position: relative;
+    perspective: 600px;
+  }
+  .match-card .inner {
+    position: absolute; inset: 0;
+    transform-style: preserve-3d;
+    transition: transform 0.35s ease;
+  }
+  .match-card.flipped .inner,
+  .match-card.solved .inner { transform: rotateY(180deg); }
+  .match-face {
+    position: absolute; inset: 0;
+    backface-visibility: hidden;
+    border-radius: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .match-face.front {
+    background: linear-gradient(135deg, var(--surface-2), var(--surface));
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.4rem;
+    color: var(--text-soft);
+  }
+  .match-face.back {
+    background: var(--surface);
+    transform: rotateY(180deg);
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px;
+  }
+  .match-card.solved .match-face.back { background: rgba(78,205,196,0.14); }
+  .match-mini-bar { width: 100%; height: 16px; display: flex; border-radius: 4px; overflow: hidden; border: 1px solid var(--line); }
+  .match-mini-bar i { flex: 1; border-right: 1px solid var(--line); }
+  .match-mini-bar i:last-child { border-right: none; }
+  .match-mini-bar i.on { background: linear-gradient(135deg, var(--coral), var(--gold)); }
+
+  footer {
+    text-align: center;
+    padding: 40px 24px 60px;
+    color: var(--text-soft);
+    font-size: 0.82rem;
+  }
+
+  @media (max-width: 600px) {
+    .topbar { flex-direction: column; gap: 14px; align-items: flex-start; }
+    .duel-fractions { grid-template-columns: 1fr; }
+    .duel-vs { text-align: center; }
+    .match-grid { grid-template-columns: repeat(3, 1fr); }
+    .tabs { grid-template-columns: 1fr; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand"><span>Fraction</span><span class="slash">/</span><span>Arcade</span></div>
+  <div class="stat-strip">
+    <div><span>Best score</span><b id="bestScoreLabel">0</b></div>
+    <div><span>Level</span><b id="levelLabel">Easy</b></div>
+  </div>
+</div>
+
+<section class="hero">
+  <div class="wrap">
+    <h1>Every big number starts as a small piece.</h1>
+    <p class="lede">Drag the divider, watch the fraction change, then head into the games below to practise comparing, building and matching fractions.</p>
+
+    <div class="slice-demo">
+      <div class="reading"><span class="num" id="demoNum">3</span><span class="bar">/</span><span class="den" id="demoDen">8</span></div>
+      <div class="caption" id="demoCaption">3 parts shaded out of 8 equal parts</div>
+      <div class="demo-bar-track" id="demoTrack">
+        <div class="demo-bar-fill" id="demoFill"></div>
+        <div class="demo-bar-ticks" id="demoTicks"></div>
+        <div class="demo-handle" id="demoHandle"></div>
+      </div>
+      <div class="demo-hint">Drag left or right</div>
+    </div>
+
+    <div class="cta-row">
+      <a class="btn" href="#arcade" id="playBtn">Play the games</a>
+    </div>
+  </div>
+</section>
+
+<section class="arcade" id="arcade">
+  <div class="wrap">
+    <div class="arcade-head">
+      <h2>Three ways to train your fraction eye</h2>
+      <p>Pick a game, choose a difficulty, and build your streak.</p>
+    </div>
+
+    <div class="panel">
+      <div class="tabs" role="tablist" aria-label="Game modes">
+        <button class="tab" role="tab" aria-selected="true" data-mode="duel">Fraction Duel</button>
+        <button class="tab" role="tab" aria-selected="false" data-mode="build">Build It</button>
+        <button class="tab" role="tab" aria-selected="false" data-mode="match">Match Pairs</button>
+      </div>
+
+      <div class="panel-body">
+        <div class="row-between">
+          <div class="diff-select" role="group" aria-label="Difficulty">
+            <button class="diff-btn" data-level="easy" aria-pressed="true">Easy</button>
+            <button class="diff-btn" data-level="medium" aria-pressed="false">Medium</button>
+            <button class="diff-btn" data-level="hard" aria-pressed="false">Hard</button>
+          </div>
+          <div class="score-pill">
+            <span>Score <b id="scoreVal">0</b></span>
+            <span>Streak <b id="streakVal">0</b></span>
+          </div>
+        </div>
+
+        <div class="game-stage" id="stage"></div>
+        <div class="feedback" id="feedback"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>Built for fraction practice &middot; works best with a bit of patience and a pencil nearby</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- storage ----------
+  var STORAGE_KEY = "fraction-arcade-best";
+  var bestScore = 0;
+  try {
+    var saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) bestScore = parseInt(saved, 10) || 0;
+  } catch (e) { /* storage unavailable, continue without persistence */ }
+  document.getElementById("bestScoreLabel").textContent = bestScore;
+
+  function saveBest(v) {
+    bestScore = v;
+    document.getElementById("bestScoreLabel").textContent = v;
+    try { localStorage.setItem(STORAGE_KEY, String(v)); } catch (e) {}
+  }
+
+  // ---------- state ----------
+  var state = {
+    mode: "duel",
+    level: "easy",
+    score: 0,
+    streak: 0
+  };
+
+  var levelRanges = {
+    easy:   { min: 2, max: 4 },
+    medium: { min: 2, max: 8 },
+    hard:   { min: 3, max: 12 }
+  };
+  var levelLabels = { easy: "Easy", medium: "Medium", hard: "Hard" };
+
+  function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+
+  function randInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  function randFraction(range) {
+    var den = randInt(Math.max(2, range.min), range.max);
+    var num = randInt(1, den - 1);
+    return { num: num, den: den };
+  }
+
+  function fracValue(f) { return f.num / f.den; }
+
+  function updateScoreUI() {
+    document.getElementById("scoreVal").textContent = state.score;
+    document.getElementById("streakVal").textContent = state.streak;
+    document.getElementById("levelLabel").textContent = levelLabels[state.level];
+  }
+
+  function registerResult(isCorrect) {
+    if (isCorrect) {
+      state.streak += 1;
+      state.score += 10 + Math.max(0, state.streak - 1) * 2;
+      if (state.score > bestScore) saveBest(state.score);
+    } else {
+      state.streak = 0;
+    }
+    updateScoreUI();
+  }
+
+  function showFeedback(msg, good) {
+    var el = document.getElementById("feedback");
+    el.textContent = msg;
+    el.className = "feedback " + (good ? "good" : "bad");
+  }
+
+  function clearFeedback() {
+    var el = document.getElementById("feedback");
+    el.textContent = "";
+    el.className = "feedback";
+  }
+
+  function miniBar(f, altColor) {
+    var bar = document.createElement("div");
+    bar.className = "mini-bar";
+    for (var i = 0; i < f.den; i++) {
+      var seg = document.createElement("i");
+      if (i < f.num) seg.className = altColor ? "on-alt" : "on";
+      bar.appendChild(seg);
+    }
+    return bar;
+  }
+
+  // ---------- Duel mode ----------
+  function renderDuel() {
+    var stage = document.getElementById("stage");
+    stage.innerHTML = "";
+    clearFeedback();
+
+    var range = levelRanges[state.level];
+    var a = randFraction(range);
+    var b = randFraction(range);
+    var tries = 0;
+    while (fracValue(a) === fracValue(b) && tries < 10) {
+      b = randFraction(range);
+      tries++;
+    }
+
+    var wrap = document.createElement("div");
+    wrap.className = "duel-fractions";
+
+    var cardA = buildDuelCard(a);
+    var vs = document.createElement("div");
+    vs.className = "duel-vs";
+    vs.textContent = "which is bigger?";
+    var cardB = buildDuelCard(b, true);
+
+    wrap.appendChild(cardA);
+    wrap.appendChild(vs);
+    wrap.appendChild(cardB);
+    stage.appendChild(wrap);
+
+    function buildDuelCard(f, alt) {
+      var card = document.createElement("button");
+      card.className = "frac-card";
+      card.setAttribute("type", "button");
+      var label = document.createElement("div");
+      label.className = "label";
+      label.textContent = f.num + " / " + f.den;
+      card.appendChild(label);
+      card.appendChild(miniBar(f, alt));
+      card.addEventListener("click", function () {
+        if (card.dataset.locked) return;
+        cardA.dataset.locked = cardB.dataset.locked = "1";
+        var aBigger = fracValue(a) > fracValue(b);
+        var pickedA = card === cardA;
+        var correct = (pickedA && aBigger) || (!pickedA && !aBigger) ? true :
+                      (fracValue(a) === fracValue(b));
+        if (fracValue(a) === fracValue(b)) {
+          cardA.classList.add("correct");
+          cardB.classList.add("correct");
+          showFeedback("They're actually equal — " + a.num + "/" + a.den + " = " + b.num + "/" + b.den, true);
+          registerResult(true);
+        } else if (correct) {
+          card.classList.add("correct");
+          (pickedA ? cardB : cardA).classList.add("wrong");
+          showFeedback("Correct! " + (pickedA ? a.num + "/" + a.den : b.num + "/" + b.den) + " is bigger.", true);
+          registerResult(true);
+        } else {
+          card.classList.add("wrong");
+          (pickedA ? cardB : cardA).classList.add("correct");
+          showFeedback("Not quite — " + (aBigger ? a.num + "/" + a.den : b.num + "/" + b.den) + " is bigger.", false);
+          registerResult(false);
+        }
+        setTimeout(renderDuel, 1200);
+      });
+      return card;
+    }
+  }
+
+  // ---------- Build mode ----------
+  var buildState = null;
+
+  function renderBuild() {
+    var stage = document.getElementById("stage");
+    stage.innerHTML = "";
+    clearFeedback();
+
+    var range = levelRanges[state.level];
+    var target = randFraction(range);
+    buildState = { target: target, shaded: 0, segs: [] };
+
+    var head = document.createElement("div");
+    head.className = "build-target";
+    head.innerHTML = '<div class="target-frac"><span class="num">' + target.num +
+      '</span><span class="bar">/</span><span class="den">' + target.den + '</span></div>' +
+      '<p>Shade ' + target.num + ' of the ' + target.den + ' parts, then check your answer</p>';
+    stage.appendChild(head);
+
+    var bar = document.createElement("div");
+    bar.className = "build-bar";
+    for (var i = 0; i < target.den; i++) {
+      (function (idx) {
+        var seg = document.createElement("button");
+        seg.type = "button";
+        seg.className = "build-seg";
+        seg.setAttribute("aria-label", "part " + (idx + 1));
+        seg.addEventListener("click", function () {
+          seg.classList.toggle("shaded");
+        });
+        bar.appendChild(seg);
+        buildState.segs.push(seg);
+      })(i);
+    }
+    stage.appendChild(bar);
+
+    var actions = document.createElement("div");
+    actions.className = "build-actions";
+    var checkBtn = document.createElement("button");
+    checkBtn.className = "btn";
+    checkBtn.textContent = "Check my answer";
+    checkBtn.addEventListener("click", checkBuild);
+    var clearBtn = document.createElement("button");
+    clearBtn.className = "btn-secondary";
+    clearBtn.textContent = "Clear";
+    clearBtn.addEventListener("click", function () {
+      buildState.segs.forEach(function (s) { s.classList.remove("shaded"); });
+    });
+    actions.appendChild(checkBtn);
+    actions.appendChild(clearBtn);
+    stage.appendChild(actions);
+  }
+
+  function checkBuild() {
+    var shadedCount = buildState.segs.filter(function (s) {
+      return s.classList.contains("shaded");
+    }).length;
+    var correct = shadedCount === buildState.target.num;
+    if (correct) {
+      showFeedback("Correct! That's " + buildState.target.num + "/" + buildState.target.den + ".", true);
+    } else {
+      showFeedback("You shaded " + shadedCount + " — the target was " + buildState.target.num + "/" + buildState.target.den + ".", false);
+    }
+    registerResult(correct);
+    setTimeout(renderBuild, 1300);
+  }
+
+  // ---------- Match mode ----------
+  function equivalentFraction(f) {
+    var k = randInt(2, 3);
+    return { num: f.num * k, den: f.den * k };
+  }
+
+  function renderMatch() {
+    var stage = document.getElementById("stage");
+    stage.innerHTML = "";
+    clearFeedback();
+
+    var range = levelRanges[state.level];
+    var pairCount = state.level === "hard" ? 6 : (state.level === "medium" ? 5 : 4);
+    var used = [];
+    var pairs = [];
+    var attempts = 0;
+    while (pairs.length < pairCount && attempts < 200) {
+      attempts++;
+      var base = randFraction(range);
+      var val = fracValue(base);
+      if (used.indexOf(val) !== -1) continue;
+      used.push(val);
+      pairs.push(base);
+    }
+
+    var cards = [];
+    pairs.forEach(function (f, i) {
+      var equiv = equivalentFraction(f);
+      cards.push({ id: i, num: f.num, den: f.den });
+      cards.push({ id: i, num: equiv.num, den: equiv.den });
+    });
+    cards.sort(function () { return Math.random() - 0.5; });
+
+    var grid = document.createElement("div");
+    grid.className = "match-grid";
+    var openCards = [];
+    var lock = false;
+
+    cards.forEach(function (data) {
+      var card = document.createElement("div");
+      card.className = "match-card";
+      var inner = document.createElement("div");
+      inner.className = "inner";
+      var front = document.createElement("div");
+      front.className = "match-face front";
+      front.textContent = "?";
+      var back = document.createElement("div");
+      back.className = "match-face back";
+      var label = document.createElement("div");
+      label.style.fontFamily = "'Fredoka', sans-serif";
+      label.style.fontSize = "0.85rem";
+      label.textContent = data.num + "/" + data.den;
+      back.appendChild(label);
+      back.appendChild(miniBar(data));
+      inner.appendChild(front);
+      inner.appendChild(back);
+      card.appendChild(inner);
+      grid.appendChild(card);
+
+      card.addEventListener("click", function () {
+        if (lock || card.classList.contains("flipped") || card.classList.contains("solved")) return;
+        card.classList.add("flipped");
+        openCards.push({ card: card, data: data });
+        if (openCards.length === 2) {
+          lock = true;
+          var a = openCards[0], b = openCards[1];
+          var match = (a.data.num / a.data.den) === (b.data.num / b.data.den);
+          setTimeout(function () {
+            if (match) {
+              a.card.classList.add("solved");
+              b.card.classList.add("solved");
+              showFeedback("Nice — " + a.data.num + "/" + a.data.den + " = " + b.data.num + "/" + b.data.den, true);
+              registerResult(true);
+              if (grid.querySelectorAll(".match-card:not(.solved)").length === 0) {
+                setTimeout(renderMatch, 1200);
+              }
+            } else {
+              a.card.classList.remove("flipped");
+              b.card.classList.remove("flipped");
+              showFeedback("Not equal — try again", false);
+              registerResult(false);
+            }
+            openCards = [];
+            lock = false;
+          }, 700);
+        }
+      });
+    });
+
+    stage.appendChild(grid);
+  }
+
+  var renderers = { duel: renderDuel, build: renderBuild, match: renderMatch };
+
+  function render() {
+    renderers[state.mode]();
+  }
+
+  // ---------- tab / difficulty wiring ----------
+  document.querySelectorAll(".tab").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll(".tab").forEach(function (t) { t.setAttribute("aria-selected", "false"); });
+      btn.setAttribute("aria-selected", "true");
+      state.mode = btn.dataset.mode;
+      render();
+    });
+  });
+
+  document.querySelectorAll(".diff-btn").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll(".diff-btn").forEach(function (t) { t.setAttribute("aria-pressed", "false"); });
+      btn.setAttribute("aria-pressed", "true");
+      state.level = btn.dataset.level;
+      updateScoreUI();
+      render();
+    });
+  });
+
+  // ---------- hero drag demo ----------
+  (function () {
+    var track = document.getElementById("demoTrack");
+    var fill = document.getElementById("demoFill");
+    var handle = document.getElementById("demoHandle");
+    var ticks = document.getElementById("demoTicks");
+    var numEl = document.getElementById("demoNum");
+    var denEl = document.getElementById("demoDen");
+    var captionEl = document.getElementById("demoCaption");
+    var den = 8;
+
+    function buildTicks() {
+      ticks.innerHTML = "";
+      for (var i = 0; i < den; i++) {
+        var t = document.createElement("i");
+        ticks.appendChild(t);
+      }
+    }
+    buildTicks();
+
+    function setFromRatio(ratio) {
+      ratio = Math.max(0, Math.min(1, ratio));
+      var num = Math.round(ratio * den);
+      var pct = (num / den) * 100;
+      fill.style.width = pct + "%";
+      handle.style.left = pct + "%";
+      numEl.textContent = num;
+      denEl.textContent = den;
+      captionEl.textContent = num + " part" + (num === 1 ? "" : "s") + " shaded out of " + den + " equal parts";
+    }
+
+    setFromRatio(3 / 8);
+
+    var dragging = false;
+
+    function ratioFromEvent(clientX) {
+      var rect = track.getBoundingClientRect();
+      return (clientX - rect.left) / rect.width;
+    }
+
+    function onMove(clientX) {
+      setFromRatio(ratioFromEvent(clientX));
+    }
+
+    handle.addEventListener("mousedown", function () { dragging = true; });
+    track.addEventListener("mousedown", function (e) { dragging = true; onMove(e.clientX); });
+    window.addEventListener("mousemove", function (e) { if (dragging) onMove(e.clientX); });
+    window.addEventListener("mouseup", function () { dragging = false; });
+
+    track.addEventListener("touchstart", function (e) {
+      dragging = true;
+      onMove(e.touches[0].clientX);
+    }, { passive: true });
+    track.addEventListener("touchmove", function (e) {
+      if (dragging) onMove(e.touches[0].clientX);
+    }, { passive: true });
+    track.addEventListener("touchend", function () { dragging = false; });
+  })();
+
+  updateScoreUI();
+  render();
+})();
+</script>
+</body>
+</html>
